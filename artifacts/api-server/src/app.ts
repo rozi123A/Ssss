@@ -57,7 +57,7 @@ if (process.env.NODE_ENV === "production") {
   const staticDir = path.resolve(__dirname, "..", "..", "nexus-comm", "dist", "public");
   app.use(express.static(staticDir));
   // SPA fallback — send index.html for all non-API routes
-  app.get("*", (_req, res) => {
+  app.get("/:splat*", (_req, res) => {
     res.sendFile(path.join(staticDir, "index.html"));
   });
 }
