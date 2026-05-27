@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "NEXUS COMM"
+version = "1.0.0"
+id = "artifacts/nexus-comm"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20021
+
+[services.development]
+run = "pnpm --filter @workspace/nexus-comm run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nexus-comm", "run", "build" ]
+publicDir = "artifacts/nexus-comm/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20021"
+BASE_PATH = "/"
