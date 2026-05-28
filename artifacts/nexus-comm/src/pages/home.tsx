@@ -23,16 +23,16 @@ function Dashboard() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
         {[
-          { label: "المستخدمين المتصلين", value: stats?.onlineUsers, color: "text-green-400", border: "border-green-500/30" },
-          { label: "إجمالي الأعضاء", value: stats?.totalUsers, color: "text-primary", border: "border-primary/30" },
-          { label: "القنوات النشطة", value: stats?.totalRooms, color: "text-secondary", border: "border-secondary/30" },
-          { label: "الرسائل المتبادلة", value: stats?.totalMessages, color: "text-accent", border: "border-accent/30" },
+          { label: "المستخدمين المتصلين", value: stats?.onlineUsers || 0, color: "text-green-400", border: "border-green-500/30" },
+          { label: "إجمالي الأعضاء", value: stats?.totalUsers || 0, color: "text-primary", border: "border-primary/30" },
+          { label: "القنوات النشطة", value: stats?.totalRooms || 0, color: "text-secondary", border: "border-secondary/30" },
+          { label: "الرسائل المتبادلة", value: stats?.totalMessages || 0, color: "text-accent", border: "border-accent/30" },
         ].map((stat, i) => (
           <div key={i} className={`p-6 border ${stat.border} bg-background/50 flex flex-col gap-2 relative overflow-hidden group hover:border-opacity-100 transition-colors duration-300`}>
             <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-current opacity-20 group-hover:opacity-100" style={{ color: stat.color }}></div>
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-current opacity-20 group-hover:opacity-100" style={{ color: stat.color }}></div>
             <span className="text-sm font-mono text-muted-foreground uppercase">{stat.label}</span>
-            <span className={`text-4xl font-display font-bold ${stat.color}`}>{stat.value?.toLocaleString() || "0"}</span>
+            <span className={`text-4xl font-display font-bold ${stat.color}`}>{typeof stat.value === 'number' ? stat.value.toLocaleString('ar-SA') : stat.value}</span>
           </div>
         ))}
       </div>

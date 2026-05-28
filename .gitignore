@@ -47,3 +47,5 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.project-config.json
+.manus-logs/
