@@ -1,121 +1,131 @@
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { Terminal, ShieldAlert, Cpu, Activity } from "lucide-react";
-import { useGetDashboardStats } from "@workspace/api-client-react";
-import { CyberSpinner } from "@/components/ui/cyber-spinner";
+import { useListRooms, useGetDashboardStats } from "@workspace/api-client-react";
+import { Link } from "wouter";
+import { Bell, Search, Calendar, ChevronLeft, Flame, Compass, PlusCircle, Trophy, Users } from "lucide-react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function Dashboard() {
-  const { data: stats, isLoading } = useGetDashboardStats();
+// Mock data to augment API rooms
+const STREAMER_IMAGES = [
+  "/streamer-1.png",
+  "/streamer-2.png",
+  "/streamer-3.png",
+  "/streamer-4.png",
+];
 
-  if (isLoading) return <CyberSpinner />;
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-6 w-full h-full"
-    >
-      <h1 className="text-3xl font-display text-primary border-b border-primary/30 pb-4 inline-block glow-text-primary uppercase tracking-widest">
-        المركز القيادي
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
-        {[
-          { label: "المستخدمين المتصلين", value: stats?.onlineUsers || 0, color: "text-green-400", border: "border-green-500/30" },
-          { label: "إجمالي الأعضاء", value: stats?.totalUsers || 0, color: "text-primary", border: "border-primary/30" },
-          { label: "القنوات النشطة", value: stats?.totalRooms || 0, color: "text-secondary", border: "border-secondary/30" },
-          { label: "الرسائل المتبادلة", value: stats?.totalMessages || 0, color: "text-accent", border: "border-accent/30" },
-        ].map((stat, i) => (
-          <div key={i} className={`p-6 border ${stat.border} bg-background/50 flex flex-col gap-2 relative overflow-hidden group hover:border-opacity-100 transition-colors duration-300`}>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-current opacity-20 group-hover:opacity-100" style={{ color: stat.color }}></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-current opacity-20 group-hover:opacity-100" style={{ color: stat.color }}></div>
-            <span className="text-sm font-mono text-muted-foreground uppercase">{stat.label}</span>
-            <span className={`text-4xl font-display font-bold ${stat.color}`}>{typeof stat.value === 'number' ? stat.value.toLocaleString('ar-SA') : stat.value}</span>
-          </div>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4 flex-1 min-h-[300px]">
-        <div className="lg:col-span-2 border border-primary/20 bg-background/50 p-6 relative">
-           <h2 className="text-xl font-display text-primary mb-4 flex items-center gap-2">
-             <Activity className="w-5 h-5" /> نشاط الشبكة
-           </h2>
-           <div className="h-full flex items-center justify-center border border-dashed border-primary/10">
-             <span className="font-mono text-primary/30 animate-pulse">[ جاري تحليل البيانات ]</span>
-           </div>
-        </div>
-        <div className="border border-secondary/20 bg-background/50 p-6 relative">
-           <h2 className="text-xl font-display text-secondary mb-4 flex items-center gap-2">
-             <ShieldAlert className="w-5 h-5" /> تنبيهات النظام
-           </h2>
-           <ul className="flex flex-col gap-3 font-mono text-sm">
-             <li className="text-muted-foreground border-r-2 border-secondary/50 pr-3">تم رصد وصول جديد من الوحدة الفرعية 7</li>
-             <li className="text-muted-foreground border-r-2 border-secondary/50 pr-3">تحديث بروتوكول التشفير مكتمل</li>
-             <li className="text-secondary/70 border-r-2 border-secondary pr-3">مزامنة البيانات مع المركز الرئيسي جارية</li>
-           </ul>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const MOCK_NAMES = ["حفلة موسيقى صوتي", "عنوان المرح الجديد", "سوالف ليل", "تحدي الأبطال"];
 
 export default function Home() {
-  const { isAuthenticated, loginAsGuest } = useAuth();
-  const [, setLocation] = useLocation();
-
-  if (isAuthenticated) {
-    return <Dashboard />;
-  }
+  const { data: rooms, isLoading } = useListRooms();
+  const { data: stats } = useGetDashboardStats();
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] relative">
-      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-        <Cpu className="w-[80vw] h-[80vw] text-primary" />
-      </div>
-      
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-2xl w-full flex flex-col items-center text-center gap-8 relative z-10"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-24 h-24 bg-primary/10 border-2 border-primary flex items-center justify-center rounded-sm glow-primary mb-4 rotate-45">
-            <span className="font-display font-bold text-5xl text-primary -rotate-45">N</span>
+    <div className="flex flex-col h-full bg-background relative overflow-y-auto hide-scrollbar pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md pb-2 pt-4 px-4 border-b border-white/5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button className="text-white/90 hover:text-white transition">
+              <Search className="w-6 h-6" />
+            </button>
+            <button className="text-white/90 hover:text-white transition relative">
+              <Bell className="w-6 h-6" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-background"></span>
+            </button>
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-primary tracking-widest glow-text-primary">
-            NEXUS COMM
+          <h1 className="text-xl font-bold italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 font-display">
+            SUPERLIVE
           </h1>
-          <p className="text-xl text-primary/70 font-mono mt-2 uppercase tracking-widest border-b border-primary/30 pb-4">
-            Secured Communication Protocol
-          </p>
+          <div className="w-16"></div> {/* Spacer for balance */}
         </div>
-        
-        <p className="text-lg text-muted-foreground max-w-lg leading-relaxed mt-4">
-          منصة التواصل من الجيل القادم. نظام مشفر، اتصالات فورية، وواجهة قيادة متقدمة للعمليات الحساسة.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-6 mt-8 w-full sm:w-auto">
-          <Button 
-            size="lg" 
-            className="font-bold text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm px-10 h-14 glow-primary"
-            onClick={() => {
-              loginAsGuest();
-              setLocation("/chat");
-            }}
-          >
-            دخول كضيف <Terminal className="ml-2 w-5 h-5 inline" />
-          </Button>
+
+        {/* Tabs */}
+        <ScrollArea className="w-full mt-4" dir="rtl">
+          <div className="flex items-center gap-6 px-2 pb-2">
+            <button className="text-lg font-bold text-white relative">
+              <span className="flex items-center gap-1"><Flame className="w-4 h-4 text-orange-500" fill="currentColor" /> مشهور</span>
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-white rounded-full"></span>
+            </button>
+            <button className="text-white/60 hover:text-white/90 font-medium whitespace-nowrap transition text-sm">
+              اكتشف
+            </button>
+            <button className="text-white/60 hover:text-white/90 font-medium whitespace-nowrap transition text-sm">
+              جديد
+            </button>
+            <button className="text-white/60 hover:text-white/90 font-medium whitespace-nowrap transition text-sm">
+              معركة
+            </button>
+            <button className="text-white/60 hover:text-white/90 font-medium whitespace-nowrap transition text-sm">
+              ضيف متعدد
+            </button>
+          </div>
+          <ScrollBar orientation="horizontal" className="hidden" />
+        </ScrollArea>
+      </header>
+
+      <div className="p-4 space-y-6">
+        {/* Banner */}
+        <div className="w-full h-24 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden flex items-center justify-between px-6 shadow-lg shadow-purple-900/20">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+          <div className="relative z-10 flex flex-col justify-center">
+            <span className="text-white font-bold text-lg">تقويم الفعاليات</span>
+            <span className="text-white/80 text-sm">اكتشف أحدث المسابقات!</span>
+          </div>
+          <div className="relative z-10 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <Calendar className="w-6 h-6 text-white" />
+          </div>
         </div>
-        
-        <div className="mt-12 flex gap-8 font-mono text-xs text-primary/40 uppercase tracking-widest">
-          <span>Status: Online</span>
-          <span>Encryption: AES-256</span>
-          <span>Nodes: Active</span>
+
+        {/* Live Grid */}
+        <div>
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="aspect-[3/4] rounded-xl bg-white/5" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {(rooms?.length ? rooms : Array(8).fill(null)).map((room, i) => {
+                const image = STREAMER_IMAGES[i % STREAMER_IMAGES.length];
+                const name = room?.name || MOCK_NAMES[i % MOCK_NAMES.length];
+                const viewers = room?.memberCount || Math.floor(Math.random() * 900) + 100;
+                const coins = Math.floor(Math.random() * 50000) + 1000;
+                const roomId = room?.id || (i + 1);
+
+                return (
+                  <Link key={i} href={`/room/${roomId}`}>
+                    <div className="cursor-pointer group block aspect-[3/4] rounded-xl overflow-hidden relative shadow-md bg-zinc-900">
+                      <img 
+                        src={image} 
+                        alt="Streamer" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      />
+                      
+                      {/* Top Overlay */}
+                      <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
+                        <div className="bg-black/40 backdrop-blur-md rounded-full px-2 py-0.5 flex items-center gap-1 text-[10px] text-white">
+                          <span>👁️</span>
+                          <span className="font-bold">{viewers}</span>
+                        </div>
+                      </div>
+
+                      {/* Bottom Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-3 pt-8 bg-gradient-to-t from-black/80 to-transparent">
+                        <h3 className="text-white font-medium text-sm line-clamp-1 text-shadow-sm">{name}</h3>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-[10px] text-amber-400 font-bold bg-amber-400/20 px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
+                            🪙 {coins.toLocaleString('en-US')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
